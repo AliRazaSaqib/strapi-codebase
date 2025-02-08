@@ -3,73 +3,42 @@ const supabase = require("../../../../utils/supabase");
 module.exports = {
   async afterCreate(event) {
     const { result } = event;
-    console.log("new item: " + JSON.stringify(result));
-    if (!result.supabaseId) {
-      // Check if entry already exists
-      const { data: existingData, error: fetchError } = await supabase
-        .getSupbase()
+    if (!result.publishedAt && !result.supabaseId) {
+      return;
+    } else {
+      await supabase
+        .getSupbaseData()
         .from("contents")
-        .select("id")
-        .eq("id", result.id)
-        .maybeSingle();
-
-      if (fetchError) {
-        console.error("Supabase Fetch Error:", fetchError);
-        return;
-      }
-
-      // Insert or update using UPSERT to prevent duplication
-      const { data, error } = await supabase
-        .getSupbase()
-        .from("contents")
-        .upsert(
-          [
-            {
-              id: result.id,
-              title: result.title,
-              description: result.description,
-              document_id: result.document_id || null,
-              created_at: result.createdAt,
-              updated_at: result.updatedAt,
-            },
-          ],
-          { onConflict: ["id"] } // Ensures no duplicate IDs
-        )
-        .select();
-
-      if (error) {
-        console.error("Supabase Upsert Error:", error);
-      } else {
-        console.log("Upserted data:", data);
-      }
+        .insert([
+          {
+            title: result.title,
+            description: result.description,
+            id: result.id - 1,
+            created_at: result.createdAt,
+          },
+        ]);
     }
   },
 
   async afterUpdate(event) {
     const { result } = event;
 
-    console.log("Updating data", result);
-
-    const { data, error } = await supabase
-      .getSupbase()
+    const { error } = await supabase
+      .getSupbaseData()
       .from("contents")
       .update({
         title: result.title,
         description: result.description,
-        document_id: result.document_id || null, // Ensure this is included
         created_at: result.createdAt,
-        updated_at: result.updatedAt,
       })
       .eq("id", result.id);
-
     if (error) console.error("Supabase Update Error:", error);
-    console.log("Updated data:", data);
   },
 
   async afterDelete(event) {
     const { result } = event;
     const { error } = await supabase
-      .getSupbase()
+      .getSupbaseData()
       .from("contents")
       .delete()
       .eq("id", result.id);

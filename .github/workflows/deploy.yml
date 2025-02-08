@@ -1,0 +1,28 @@
+name: Deploy Strapi to Digital Ocean
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Install SSH Key
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Deploy to Digital Ocean
+        run: |
+          ssh -o StrictHostKeyChecking=no root@your-droplet-ip << 'EOF'
+            cd /root/strapi-app
+            git pull origin main
+            docker-compose down
+            docker-compose up -d --build
+          EOF

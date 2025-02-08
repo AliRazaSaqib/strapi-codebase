@@ -19,7 +19,6 @@ module.exports = {
    * run jobs, or perform some special logic.
    */
   bootstrap({ strapi }) {
-    console.log("trying to bootstrap", strapi);
     subscribeToChanges(strapi);
   },
 };
