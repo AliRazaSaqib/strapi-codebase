@@ -1,0 +1,38 @@
+version: "3.8"
+
+services:
+  strapi:
+    container_name: strapi-app
+    build: .
+    restart: always
+    env_file: .env
+    ports:
+      - "1337:1337"
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_CLIENT: postgres
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: strapi_db
+      DATABASE_USERNAME: strapi_user
+      DATABASE_PASSWORD: strapi_password
+      NODE_ENV: production
+      ADMIN_JWT_SECRET: "your-secret-key"
+    volumes:
+      - strapi_data:/app/public/uploads
+
+  postgres:
+    container_name: postgres-db
+    image: postgres:14
+    restart: always
+    environment:
+      POSTGRES_USER: strapi_user
+      POSTGRES_PASSWORD: strapi_password
+      POSTGRES_DB: strapi_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  strapi_data:
+  postgres_data:
